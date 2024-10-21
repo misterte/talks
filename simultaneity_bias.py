@@ -28,11 +28,15 @@ parser = argparse.ArgumentParser(
     """
 )
 
+parser.add_argument("--demand-elasticity", type=str, choices=["low", "mid", "high"], default="mid",
+                    help="Elasticity of the demand curve")
+parser.add_argument("--supply-elasticity", type=str, choices=["low", "mid", "high"], default="high",
+                    help="Elasticity of the supply curve")
 parser.add_argument("--shock", type=str, choices=["reversed", "matched", "independent"], default="matched",
                     help="Type of noise shock for supply and demand curves")
 parser.add_argument("--add_px", action="store_true",
                     help="Flag to also add px shock, allowing unbaised estimation of demand")
-parser.add_argument("--speed", type=str, choices=["fast", "medium", "slow"], default="medium",
+parser.add_argument("--speed", type=str, choices=["high", "mid", "low"], default="mid",
                     help="Speed of the animation")
 
 args = parser.parse_args()
@@ -45,16 +49,16 @@ fit_px_threshold = 100
 shock_min_max = (-2.0, 2.0)
 px_pct_min_max = (-0.05, 0.05)
 animation_interval = (
-    50 if add_px and args.speed == "fast"
+    50 if add_px and args.speed == "high"
     else
-    100 if add_px and args.speed == "medium"
+    100 if add_px and args.speed == "mid"
     else
     200
 )
 animation_frames = (
-    1_000 if add_px and args.speed == "fast"
+    1_000 if add_px and args.speed == "high"
     else
-    500 if add_px and args.speed == "medium"
+    500 if add_px and args.speed == "mid"
     else
     250
 )
@@ -108,13 +112,34 @@ ax.set_ylim(0, 25)
 # Add a grid to the plot
 ax.grid(True, linestyle='--', alpha=0.7)
 
+# Ground truth parameters
+if args.demand_elasticity == "high":
+    b_d = 1
+    a_d_orig = 20
+elif args.demand_elasticity == "low":
+    b_d = 3
+    a_d_orig = 40
+else: # mid
+    b_d = 2
+    a_d_orig = 30
+
+if args.supply_elasticity == "high":
+    b_s = 1
+    a_s_orig = 10
+elif args.supply_elasticity == "low":
+    b_s = 3
+    a_s_orig = -10
+else: # mid
+    b_s = 2
+    a_s_orig = 0
+
 # Fixed supply and demand slopes
-b_s = 1  # Supply slope
-b_d = 2  # Demand slope
+#b_s = 1  # Supply slope
+#b_d = 2  # Demand slope
 
 # Original supply and demand intercepts
-a_s_orig = 10  # Original Supply intercept
-a_d_orig = 30  # Original Demand intercept
+#a_s_orig = 10  # Original Supply intercept
+#a_d_orig = 30  # Original Demand intercept
 
 # Original price and quantity intersections
 Q_orig, P_orig = find_intersection(a_s_orig, b_s, a_d_orig, b_d)
